@@ -1,0 +1,46 @@
+id: GENIE-001
+name: Genie Code permission-denied burst
+version: 1
+status: experimental
+category: detection
+severity: medium
+
+description: |
+  A user's Genie Code session hits PERMISSION_DENIED on tool calls repeatedly: the agent
+  is being asked to reach data or actions the user is not entitled to. One denial is
+  normal; a burst is probing, whether by the user or by an injected instruction.
+
+frameworks:
+  owasp_llm:
+    - LLM06:2025 Excessive Agency
+
+data_sources:
+  - unified_trace_table
+
+sql: |
+  SELECT
+    attributes:['enduser.id']::string AS user_id,
+    CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+    COUNT(*) AS denied_calls,
+    COUNT(DISTINCT trace_id) AS turns,
+    MIN(time) AS first_seen,
+    MAX(time) AS last_seen
+  FROM {trace_table}
+  WHERE service_name = 'genie-code-agent'
+    AND name LIKE 'tool.execute:%'
+    AND attributes:['databricks.genie_code.tool.outcome']::string = 'PERMISSION_DENIED'
+    AND time >= current_timestamp() - INTERVAL {lookback}
+  GROUP BY 1, 2
+  HAVING denied_calls >= {threshold}
+
+parameters:
+  lookback: 1 HOUR
+  threshold: 5
+
+false_positive_notes: |
+  - New joiners before their access requests are approved
+  - Users exploring a newly shared catalog with partial grants
+
+tags:
+  - genie-code
+  - access

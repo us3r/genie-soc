@@ -1,0 +1,62 @@
+id: GENIE-002
+name: User starts using Genie One through a new programmatic channel
+version: 1
+status: experimental
+category: behaviour
+severity: low
+
+description: |
+  A user who has only used Genie One interactively starts calling it through the API,
+  the CLI or the managed MCP server. Programmatic access is how fifty polite questions
+  become a scripted extraction, so the first time it happens is worth a look.
+
+frameworks:
+  owasp_llm:
+    - LLM02:2025 Sensitive Information Disclosure
+
+data_sources:
+  - unified_trace_table
+
+sql: |
+  WITH turns AS (
+    SELECT
+      time,
+      attributes:['enduser.id']::string AS user_id,
+      attributes:['databricks.genie.channel']::string AS channel,
+      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id
+    FROM {trace_table}
+    WHERE service_name = 'Genie One'
+      AND name = 'invoke_agent OneChat'
+      AND time >= current_timestamp() - INTERVAL {baseline_window}
+  ),
+  recent AS (
+    SELECT user_id, channel, workspace_id, COUNT(*) AS turns, MIN(time) AS first_seen
+    FROM turns
+    WHERE time >= current_timestamp() - INTERVAL {lookback}
+    GROUP BY 1, 2, 3
+  ),
+  baseline AS (
+    SELECT DISTINCT user_id, channel
+    FROM turns
+    WHERE time < current_timestamp() - INTERVAL {lookback}
+  )
+  SELECT r.*
+  FROM recent r
+  LEFT ANTI JOIN baseline b ON r.user_id = b.user_id AND r.channel = b.channel
+  WHERE r.channel IN ({programmatic_channels})
+
+parameters:
+  lookback: 1 DAY
+  baseline_window: 30 DAYS
+  programmatic_channels:
+    - public_api
+    - databricks_cli
+    - managed_mcp_server
+
+false_positive_notes: |
+  - Users with no history in the baseline window (new joiners, first Genie use)
+  - Approved automation onboarding (record as a suppression)
+
+tags:
+  - genie-one
+  - behaviour

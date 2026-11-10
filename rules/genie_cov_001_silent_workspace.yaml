@@ -1,0 +1,41 @@
+id: GENIE-COV-001
+name: Genie traces stopped arriving from a workspace
+version: 1
+status: experimental
+category: coverage
+severity: high
+
+description: |
+  A workspace sent Genie traces during the baseline window but nothing recently.
+  Tracing is opt-in per workspace and delivery is best-effort, so silence is either
+  a disabled preview, a broken export or no usage. All three need an owner.
+
+data_sources:
+  - unified_trace_table
+
+sql: |
+  WITH last_seen AS (
+    SELECT
+      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+      MAX(time) AS last_trace_time,
+      COUNT(*) AS spans_in_baseline
+    FROM {trace_table}
+    WHERE service_name IN ({genie_services})
+      AND time >= current_timestamp() - INTERVAL {baseline_window}
+    GROUP BY 1
+  )
+  SELECT workspace_id, last_trace_time, spans_in_baseline
+  FROM last_seen
+  WHERE last_trace_time < current_timestamp() - INTERVAL {silence_threshold}
+
+parameters:
+  baseline_window: 7 DAYS
+  silence_threshold: 24 HOURS
+
+false_positive_notes: |
+  - Workspaces with genuinely no Genie usage over a weekend or holiday
+  - Planned preview disablement (record it as a suppression)
+
+tags:
+  - coverage
+  - genie

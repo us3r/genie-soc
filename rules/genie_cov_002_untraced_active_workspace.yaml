@@ -1,0 +1,48 @@
+id: GENIE-COV-002
+name: Active workspace with no Genie traces
+version: 1
+status: experimental
+category: coverage
+severity: medium
+
+description: |
+  A running workspace has user activity in the audit log but has never sent a Genie
+  trace in the lookback window: the likeliest cause is that the Genie One / Genie Code
+  Tracing previews were never turned on. system.access.audit is regional, so this only
+  covers workspaces in the same region as the deployment.
+
+data_sources:
+  - unified_trace_table
+  - system.access.audit
+  - system.access.workspaces_latest
+
+sql: |
+  WITH traced AS (
+    SELECT DISTINCT CAST(attributes:['workspace_id'] AS STRING) AS workspace_id
+    FROM {trace_table}
+    WHERE service_name IN ({genie_services})
+      AND time >= current_timestamp() - INTERVAL {lookback}
+  ),
+  active AS (
+    SELECT CAST(workspace_id AS STRING) AS workspace_id, COUNT(*) AS audit_events
+    FROM {audit_table}
+    WHERE event_time >= current_timestamp() - INTERVAL {lookback}
+      AND workspace_id <> 0
+    GROUP BY 1
+  )
+  SELECT CAST(w.workspace_id AS STRING) AS workspace_id, w.workspace_name, a.audit_events
+  FROM {workspaces_table} w
+  JOIN active a ON CAST(w.workspace_id AS STRING) = a.workspace_id
+  LEFT ANTI JOIN traced t ON a.workspace_id = t.workspace_id
+  WHERE w.status = 'RUNNING'
+
+parameters:
+  lookback: 7 DAYS
+
+false_positive_notes: |
+  - Workspaces where Genie is deliberately disabled (record as a suppression)
+  - Workspaces with only automated (job) activity and no interactive users
+
+tags:
+  - coverage
+  - genie

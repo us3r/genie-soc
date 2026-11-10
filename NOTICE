@@ -1,0 +1,6 @@
+genie-soc
+Copyright 2026 Mariusz Derela
+
+This project builds on ideas from genie-trace-monitoring by Andrew Weaver
+(https://github.com/andyweaves/genie-trace-monitoring), licensed under Apache-2.0.
+No code from that project is included unless stated in the file that contains it.

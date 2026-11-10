@@ -1,0 +1,25 @@
+bundle:
+  name: genie-soc
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Catalog for genie-soc tables (findings, suppressions).
+    default: unity_gateway
+  schema:
+    description: Schema for genie-soc tables.
+    default: genie_soc
+  trace_table:
+    description: Fully qualified name of the Unity Gateway unified trace table.
+    default: unity_gateway.unified_tracing.unity_gateway_otel_spans
+  warehouse_name:
+    description: Serverless or pro SQL warehouse for rules and alerts.
+    default: Serverless Starter Warehouse
+
+# One target per metastore (region). Targets carry no host or profile: pass --profile.
+targets:
+  dev:
+    default: true
+    mode: development
