@@ -10,7 +10,8 @@ operations team needs on top of content detections:
 - **Agent behaviour:** access requests Genie prepares on the user's behalf, permission-denied
   bursts, new programmatic channels.
 - **Detection-as-code:** one YAML file per rule, with parameterised SQL, a framework mapping
-  (OWASP Top 10 for LLM Applications) and tests against the span shapes of live traces.
+  (MITRE ATLAS, MITRE ATT&CK, OWASP Top 10 for LLM Applications) and tests against the span
+  shapes of live traces.
 
 It complements, and does not replace,
 [genie-trace-monitoring](https://github.com/andyweaves/genie-trace-monitoring) by Andrew Weaver,

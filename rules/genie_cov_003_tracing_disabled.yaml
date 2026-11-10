@@ -8,7 +8,7 @@ severity: high
 description: |
   Someone turned off Genie One or Genie Code tracing in a workspace, or changed the
   metastore's trace table configuration. Disabling logging before acting is a classic
-  defence-evasion step (MITRE ATT&CK T1562.008, Disable or Modify Cloud Logs), and it is
+  defence-impairment step (MITRE ATT&CK T1685.002, Disable or Modify Cloud Log), and it is
   the only silence that announces itself: both changes are written to the audit log.
 
   Workspace previews appear as setSetting with settingTypeName genie_tracing or
@@ -18,6 +18,11 @@ description: |
 
   The lookback is wider than the schedule on purpose: the audit log lags by about ten
   minutes, and the findings table de-duplicates repeated rows.
+
+# MITRE ATLAS 2026.10, MITRE ATT&CK v20.1, OWASP Top 10 for LLM Applications 2025
+frameworks:
+  mitre_attack:
+    - T1685.002 Disable or Modify Cloud Log
 
 data_sources:
   - system.access.audit
@@ -62,4 +67,4 @@ false_positive_notes: |
 
 tags:
   - coverage
-  - defence-evasion
+  - defence-impairment

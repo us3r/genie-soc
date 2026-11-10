@@ -56,7 +56,7 @@ def test_finding_carries_rule_metadata_and_evidence():
 def test_frameworks_are_flattened():
     row = {"user_id": "analyst@example.com", "workspace_id": "1", "day": NOW, "access_requests": 2}
     f = to_finding(RULES["GENIE-004"], row, "run-1", NOW)
-    assert f["frameworks"] == ["LLM06:2025 Excessive Agency"]
+    assert f["frameworks"] == ["LLM06:2025 Excessive Agency", "AML.T0053 AI Agent Tool Invocation"]
 
 
 def test_conversation_ids_are_kept_for_joining_upstream_sessions():

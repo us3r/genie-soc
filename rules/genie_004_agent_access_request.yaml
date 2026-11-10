@@ -16,9 +16,12 @@ description: |
   agent is turning "I can't see this" into "please let me see this" at scale, whether the
   user or an injected instruction is driving it.
 
+# MITRE ATLAS 2026.10, MITRE ATT&CK v20.1, OWASP Top 10 for LLM Applications 2025
 frameworks:
   owasp_llm:
     - LLM06:2025 Excessive Agency
+  mitre_atlas:
+    - AML.T0053 AI Agent Tool Invocation
 
 data_sources:
   - unified_trace_table

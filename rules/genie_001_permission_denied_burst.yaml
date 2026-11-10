@@ -10,9 +10,15 @@ description: |
   is being asked to reach data or actions the user is not entitled to. One denial is
   normal; a burst is probing, whether by the user or by an injected instruction.
 
+# MITRE ATLAS 2026.10, MITRE ATT&CK v20.1, OWASP Top 10 for LLM Applications 2025
 frameworks:
   owasp_llm:
     - LLM06:2025 Excessive Agency
+  mitre_atlas:
+    - AML.T0053 AI Agent Tool Invocation
+    - AML.T0085 Data from AI Services
+  mitre_attack:
+    - T1213 Data from Information Repositories
 
 data_sources:
   - unified_trace_table
