@@ -42,6 +42,15 @@ on a span name, attribute or tool that real traces do not contain fails the test
 Table locations per deployment are in `config/environments.yaml`; rule parameters can be
 overridden at run time, but only with numbers, lists, intervals or table names.
 
+## Framework sources
+
+Rule mappings use these releases; the version is also noted above each `frameworks` block.
+
+- [MITRE ATLAS](https://atlas.mitre.org/) 2026.10, from the [atlas-data release](https://github.com/mitre-atlas/atlas-data)
+- [MITRE ATT&CK](https://attack.mitre.org/) v20.1 (enterprise); v20 retired T1562.008 in favour of
+  [T1685.002](https://attack.mitre.org/techniques/T1685/002/)
+- [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
+
 ## How it runs
 
 One Declarative Automation Bundle, one target per metastore:
