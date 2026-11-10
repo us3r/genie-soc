@@ -27,7 +27,7 @@ sql: |
     MAX(time) AS last_seen
   FROM {trace_table}
   WHERE service_name = 'genie-code-agent'
-    AND name LIKE 'tool.execute:%'
+    AND name LIKE 'execute_tool %'
     AND attributes:['databricks.genie_code.tool.outcome']::string = 'PERMISSION_DENIED'
     AND time >= current_timestamp() - INTERVAL {lookback}
   GROUP BY 1, 2

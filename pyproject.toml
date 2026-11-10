@@ -19,3 +19,4 @@ packages = ["src/genie_soc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
+pythonpath = ["src"]

@@ -26,7 +26,7 @@ sql: |
       CAST(attributes:['workspace_id'] AS STRING) AS workspace_id
     FROM {trace_table}
     WHERE service_name = 'Genie One'
-      AND name = 'invoke_agent OneChat'
+      AND name LIKE 'invoke_agent %'
       AND time >= current_timestamp() - INTERVAL {baseline_window}
   ),
   recent AS (
