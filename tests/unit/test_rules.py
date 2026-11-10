@@ -34,7 +34,7 @@ def write(tmp_path: Path, text: str, name: str = "rule.yaml") -> Path:
 def test_every_shipped_rule_renders(rule):
     sql = render_sql(rule, ENV)
     assert "{" not in sql and "}" not in sql
-    assert ENV["trace_table"] in sql
+    assert ENV["trace_table"] in sql or ENV["audit_table"] in sql
 
 
 def test_render_fills_environment_and_parameters(tmp_path):

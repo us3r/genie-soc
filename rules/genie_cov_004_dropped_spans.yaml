@@ -1,0 +1,42 @@
+id: GENIE-COV-004
+name: Genie Code turn lost spans
+version: 1
+status: experimental
+category: coverage
+severity: low
+
+description: |
+  Genie Code reports on each turn's root span how many spans it dropped before export
+  (databricks.genie_code.dropped_span_count). A non-zero count means the trace for that
+  turn is incomplete: a tool call or a model call may be missing, so detections built on
+  tool spans can miss it too. Repeated drops for one workspace point at an export problem
+  rather than a one-off.
+
+data_sources:
+  - unified_trace_table
+
+sql: |
+  SELECT
+    CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+    attributes:['enduser.id']::string AS user_id,
+    trace_id,
+    time,
+    attributes:['databricks.genie_code.dropped_span_count']::int AS dropped_spans,
+    attributes:['databricks.genie_code.expected_span_count']::int AS expected_spans,
+    attributes:['databricks.genie_code.trace_schema_version']::string AS schema_version
+  FROM {trace_table}
+  WHERE service_name = 'genie-code-agent'
+    AND name LIKE 'invoke_agent %'
+    AND attributes:['databricks.genie_code.dropped_span_count']::int > {threshold}
+    AND time >= current_timestamp() - INTERVAL {lookback}
+
+parameters:
+  lookback: 2 HOURS
+  threshold: 0
+
+false_positive_notes: |
+  - Very long agent runs may drop spans by design; check the count against expected_spans
+
+tags:
+  - coverage
+  - genie-code

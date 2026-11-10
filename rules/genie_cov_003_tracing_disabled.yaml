@@ -1,0 +1,59 @@
+id: GENIE-COV-003
+name: Genie tracing switched off or redirected
+version: 1
+status: experimental
+category: coverage
+severity: high
+
+description: |
+  Someone turned off Genie One or Genie Code tracing in a workspace, or changed the
+  metastore's trace table configuration. Disabling logging before acting is a classic
+  defence-evasion step (MITRE ATT&CK T1562.008, Disable or Modify Cloud Logs), and it is
+  the only silence that announces itself: both changes are written to the audit log.
+
+  Workspace previews appear as setSetting with settingTypeName genie_tracing or
+  genie_code_tracing. Every write to the metastore tracing configuration is reported,
+  including the initial setup, because pointing traces at another table hides them as
+  well as switching them off does.
+
+  The lookback is wider than the schedule on purpose: the audit log lags by about ten
+  minutes, and the findings table de-duplicates repeated rows.
+
+data_sources:
+  - system.access.audit
+
+sql: |
+  SELECT
+    event_time,
+    CAST(workspace_id AS STRING) AS workspace_id,
+    user_identity.email AS actor,
+    source_ip_address,
+    action_name,
+    CASE WHEN action_name = 'setSetting' THEN request_params['settingTypeName']
+         ELSE 'metastore_tracing_config' END AS setting,
+    coalesce(request_params['settingValueForAudit'], request_params['tracing_config']) AS new_value
+  FROM {audit_table}
+  WHERE event_time >= current_timestamp() - INTERVAL {lookback}
+    AND response.status_code = 200
+    AND (
+      (service_name = 'workspace'
+        AND action_name = 'setSetting'
+        AND request_params['settingTypeName'] IN ({tracing_settings})
+        AND lower(request_params['settingValueForAudit']) <> 'true')
+      OR (service_name = 'ai-gateway'
+        AND action_name RLIKE '^(create|update|delete|set)MetastoreTracingConfig$')
+    )
+
+parameters:
+  lookback: 2 HOURS
+  tracing_settings:
+    - genie_tracing
+    - genie_code_tracing
+
+false_positive_notes: |
+  - Planned changes by the platform team (match against a change ticket, then suppress)
+  - The one-off creation of the trace table during setup
+
+tags:
+  - coverage
+  - defence-evasion

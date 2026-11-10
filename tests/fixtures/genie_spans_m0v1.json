@@ -1,0 +1,211 @@
+{
+  "_comment": "Span shapes observed in live Genie traces (genie_code trace_schema_version m0.v1). Span names and attribute keys are real; every value is synthetic.",
+  "spans": [
+    {
+      "service_name": "Genie One",
+      "name": "invoke_agent GenieOne",
+      "_is_root": 1,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.trace.service_type": "genie",
+        "databricks.genie.account_id": "00000000-0000-0000-0000-000000000001",
+        "databricks.genie.channel": "webapp",
+        "databricks.genie.surface": "genie_one",
+        "databricks.genie.status": "completed",
+        "databricks.genie.request_id": "00000000-0000-0000-0000-000000000002",
+        "databricks.genie.requester_id": "2000000000000001",
+        "databricks.genie.response_id": "r0000000000000000000000000000001",
+        "databricks.genie.citations": "[{\"asset_type\":\"TABLE\",\"identifier\":\"lab.sales.orders\"}]",
+        "gen_ai.agent.name": "GenieOne",
+        "gen_ai.conversation.id": "c0000000000000000000000000000001",
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.input.messages": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"Which tables hold orders?\"}]}]",
+        "gen_ai.output.messages": "[{\"role\":\"assistant\",\"parts\":[{\"type\":\"text\",\"content\":\"lab.sales.orders\"}]}]"
+      }
+    },
+    {
+      "service_name": "Genie One",
+      "name": "execute_tool execute_sql_query",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.trace.service_type": "genie",
+        "databricks.genie.response_id": "r0000000000000000000000000000001",
+        "gen_ai.conversation.id": "c0000000000000000000000000000001",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "execute_sql_query",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000001",
+        "gen_ai.tool.call.arguments": "{\"query\": \"SELECT count(*) FROM lab.sales.orders\"}",
+        "gen_ai.tool.call.result": "{\"status\": \"ok\", \"row_count\": 1}"
+      }
+    },
+    {
+      "service_name": "Genie One",
+      "name": "request_approval request_uc_asset_access",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.trace.service_type": "genie",
+        "databricks.genie.response_id": "r0000000000000000000000000000002",
+        "databricks.genie.elicitation.id": "toolu_0000000000000000000002_rfa_approval_request",
+        "gen_ai.conversation.id": "c0000000000000000000000000000001",
+        "gen_ai.operation.name": "request_approval",
+        "gen_ai.tool.name": "request_uc_asset_access",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000002",
+        "gen_ai.tool.call.arguments": "{\"securable_full_name\": \"lab.restricted.sample_records\", \"securable_type\": \"TABLE\"}",
+        "mlflow.spanType": "CHAIN"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "invoke_agent genieCodeAgent",
+      "_is_root": 1,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.actor.is_actor_authenticated": "true",
+        "databricks.actor.resource": "synthetic",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.run.outcome": "success",
+        "databricks.genie_code.expected_span_count": 5,
+        "databricks.genie_code.source_span_count": 10,
+        "databricks.genie_code.dropped_span_count": 0,
+        "databricks.genie_code.truncated_fields": "[]",
+        "agent.name": "genieCodeAgent",
+        "gen_ai.agent.id": "00000000-0000-0000-0000-000000000003",
+        "gen_ai.agent.name": "genieCodeAgent",
+        "gen_ai.conversation.id": "3000000000000001",
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.input.messages": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"Count rows in lab.sales.orders\"}]}]",
+        "gen_ai.output.messages": "[{\"role\":\"assistant\",\"parts\":[{\"type\":\"text\",\"content\":\"Done.\"}]}]",
+        "mlflow.spanType": "AGENT"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "chat",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.actor.is_actor_authenticated": "true",
+        "databricks.actor.resource": "synthetic",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.truncated_fields": "[]",
+        "gen_ai.agent.id": "00000000-0000-0000-0000-000000000003",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.output.messages": "[]",
+        "mlflow.spanType": "LLM"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "execute_tool executeCode",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.actor.is_actor_authenticated": "true",
+        "databricks.actor.resource": "synthetic",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.tool.outcome": "PERMISSION_DENIED",
+        "gen_ai.agent.id": "00000000-0000-0000-0000-000000000003",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "executeCode",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000003",
+        "gen_ai.tool.call.arguments": "{\"code\":\"SELECT * FROM lab.restricted.sample_records LIMIT 5\",\"language\":\"sql\"}",
+        "gen_ai.tool.call.result": "{\"status\":\"error\",\"error\":\"PERMISSION_DENIED\"}",
+        "mlflow.spanType": "TOOL"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "execute_tool askUserQuestions",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.actor.is_actor_authenticated": "true",
+        "databricks.actor.resource": "synthetic",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.tool.outcome": "SUCCESS",
+        "gen_ai.agent.id": "00000000-0000-0000-0000-000000000003",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "askUserQuestions",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000004",
+        "gen_ai.tool.call.arguments": "{\"questions\":[{\"id\":\"access\",\"question\":\"You do not have SELECT on lab.restricted.sample_records. Request access?\"}]}",
+        "gen_ai.tool.call.result": "{\"status\":\"answered\",\"answers\":[{\"questionId\":\"genie-code-rfa:00000000-0000-0000-0000-000000000004\",\"selectedOptionIds\":[]}]}",
+        "mlflow.spanType": "TOOL"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "execute_tool editAsset",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.tool.outcome": "SUCCESS",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.tool.name": "editAsset",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000005",
+        "gen_ai.tool.call.arguments": "{\"assetId\":\"4000000000000001\",\"assetType\":\"notebook\"}",
+        "gen_ai.tool.call.result": "{\"status\":\"edited\",\"assetId\":\"4000000000000001\"}",
+        "mlflow.spanType": "TOOL"
+      }
+    },
+    {
+      "service_name": "genie-code-agent",
+      "name": "request_user_input",
+      "_is_root": 0,
+      "attributes": {
+        "workspace_id": "1000000000000001",
+        "enduser.id": "analyst@example.com",
+        "databricks.principal_id": "2000000000000001",
+        "databricks.actor.is_actor_authenticated": "true",
+        "databricks.actor.resource": "synthetic",
+        "databricks.genie_code.trace_schema_version": "m0.v1",
+        "databricks.genie_code.approval.outcome": "approved",
+        "databricks.genie_code.approval.request_id": "toolu_0000000000000000000003",
+        "databricks.genie_code.approval.source": "user",
+        "gen_ai.agent.id": "00000000-0000-0000-0000-000000000003",
+        "gen_ai.operation.name": "request_user_input",
+        "gen_ai.tool.call.id": "toolu_0000000000000000000003",
+        "gen_ai.tool.name": "executeCode",
+        "mlflow.spanType": "TOOL"
+      }
+    }
+  ],
+  "audit_events": [
+    {
+      "service_name": "unityCatalog",
+      "action_name": "getTable",
+      "user_agent": "databricks-background-genie Chrome/148.0.0.0 group/assistant sid/0123456789abcdef0123456789abcdef",
+      "request_params": {"full_name_arg": "lab.sales.orders"}
+    },
+    {
+      "service_name": "workspace",
+      "action_name": "setSetting",
+      "user_agent": "Mozilla/5.0",
+      "request_params": {"settingTypeName": "genie_tracing", "settingValueForAudit": "true", "settingKeyTypeName": "workspace"}
+    },
+    {
+      "service_name": "ai-gateway",
+      "action_name": "updateMetastoreTracingConfig",
+      "user_agent": "Mozilla/5.0",
+      "request_params": {"metastore_id": "00000000-0000-0000-0000-000000000005", "tracing_config": "{\"enabled\":true,\"catalog_name\":\"lab\",\"schema_name\":\"unity_gateway\"}"}
+    }
+  ]
+}
