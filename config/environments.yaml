@@ -1,8 +1,10 @@
 # Where the tables live, per deployment target. One target per metastore (region).
-# Rules reference these as {trace_table}, {audit_table}, {genie_services}.
+# Rules reference these as {trace_table}, {audit_table},
+# {assistant_events_table}, {genie_services}.
 dev:
   trace_table: unity_gateway.unified_tracing.unity_gateway_otel_spans
   audit_table: system.access.audit
+  assistant_events_table: system.access.assistant_events
   genie_services:
     - Genie One
     - genie-code-agent

@@ -28,6 +28,7 @@ REQUIRED = ("id", "name", "version", "status", "category", "severity", "sql")
 
 _ID = re.compile(r"^GENIE-(COV-)?\d{3}$")
 _INTERVAL = re.compile(r"^\d+ (SECOND|MINUTE|HOUR|DAY|WEEK|MONTH)S?$")
+_COLUMN = re.compile(r"^[a-z_][a-z0-9_]*$")
 _TABLE = re.compile(r"^(`[^`]+`|[A-Za-z_][\w-]*)(\.(`[^`]+`|[A-Za-z_][\w-]*)){0,2}$")
 
 
@@ -50,6 +51,7 @@ class Rule:
     parameters: dict[str, Any] = field(default_factory=dict)
     false_positive_notes: str = ""
     tags: list[str] = field(default_factory=list)
+    finding_key: list[str] = field(default_factory=list)
     path: Path | None = None
 
     @property
@@ -118,6 +120,8 @@ def _validate(rule: Rule) -> None:
         raise RuleError(f"{where}: status must be one of {sorted(STATUSES)}")
     if rule.category != "coverage" and not any(rule.frameworks.values()):
         raise RuleError(f"{where}: detection and behaviour rules need a framework mapping")
+    if not rule.finding_key or not all(isinstance(c, str) and _COLUMN.match(c) for c in rule.finding_key):
+        raise RuleError(f"{where}: finding_key must list the result columns that identify a finding")
     for name, value in rule.parameters.items():
         _literal(rule.id, name, value)
 

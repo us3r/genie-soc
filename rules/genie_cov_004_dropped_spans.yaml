@@ -20,6 +20,7 @@ sql: |
     CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
     attributes:['enduser.id']::string AS user_id,
     trace_id,
+    array(coalesce(attributes:['gen_ai.conversation.id']::string, trace_id)) AS conversation_ids,
     time,
     attributes:['databricks.genie_code.dropped_span_count']::int AS dropped_spans,
     attributes:['databricks.genie_code.expected_span_count']::int AS expected_spans,
@@ -29,6 +30,9 @@ sql: |
     AND name LIKE 'invoke_agent %'
     AND attributes:['databricks.genie_code.dropped_span_count']::int > {threshold}
     AND time >= current_timestamp() - INTERVAL {lookback}
+
+finding_key:
+  - trace_id
 
 parameters:
   lookback: 2 HOURS

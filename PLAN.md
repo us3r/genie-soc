@@ -38,7 +38,7 @@ tests/unit/             local tests for the rule loader (no Spark)
 src/genie_soc/          rule loader, parameter resolution, runner
 src/sql/                shared views (coverage, sessions)
 resources/              bundle resources (jobs, alerts)
-eval/                   red-team set + MLflow evaluation of detectors (M3)
+eval/                   red-team set + MLflow evaluation of imported detectors (M3)
 ```
 
 ## Milestones
@@ -48,7 +48,7 @@ eval/                   red-team set + MLflow evaluation of detectors (M3)
 | M0 | Skeleton: plan, rule format, loader, unit tests, bundle config | `pytest` passes locally |
 | M1 | Coverage monitoring: silent workspaces, active workspaces never traced | rules run on `dev` workspace, alert fires on a simulated gap |
 | M2 | Synthetic Genie traces + rule test runner on Spark | every rule has a passing true-positive and true-negative case |
-| M3 | Detector evaluation: red-team set (direct/indirect injection, non-US PII, company-confidential data), precision/recall in MLflow | report per detector, including upstream ones |
+| M3 | Content detectors are imported, not rebuilt: findings from external detectors (upstream genie_detections, any prompt-injection or PII detector with a documented output table) land in `findings` as `UPSTREAM-*`, joined by `conversation_ids`; a shared red-team set measures them in MLflow | one queue for coverage, behaviour and content findings; precision/recall per imported detector |
 | M4 | Behaviour: per-user baselines (volume, new tables via lineage, new channel, off-hours) | anomaly rules with tests |
 | M5 | SOC integration: OCSF view, SIEM export, triage agent writing a verdict for human approval | end-to-end demo |
 | M6 | Multi-region: per-region targets, central findings share | two-target deploy documented |

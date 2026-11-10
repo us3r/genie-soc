@@ -1,0 +1,44 @@
+resources:
+  jobs:
+    genie_soc_rules:
+      name: genie-soc rules
+      description: >
+        Runs every enabled genie-soc rule, MERGEs the results into the findings table, then
+        evaluates the "findings to review" alert against the finished table.
+      tags:
+        project: genie-soc
+      # STANDARD: hourly batch with no deadline; a slower start costs nothing here.
+      performance_target: STANDARD
+      max_concurrent_runs: 1
+      schedule:
+        quartz_cron_expression: "0 5 * * * ?"
+        timezone_id: UTC
+        pause_status: PAUSED
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "4"
+            dependencies:
+              - pyyaml==6.0.2
+      tasks:
+        - task_key: run_rules
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/genie_soc/runner.py
+            parameters:
+              - --bundle-root
+              - ${workspace.file_path}
+              - --trace-table
+              - ${var.trace_table}
+              - --output-schema
+              - ${resources.schemas.genie_soc.catalog_name}.${resources.schemas.genie_soc.name}
+
+        # ALL_DONE: the runner fails the task when one rule errors, but the findings the other
+        # rules wrote still need to reach someone. The failed task flags the broken rule.
+        - task_key: alert_findings_to_review
+          depends_on:
+            - task_key: run_rules
+          run_if: ALL_DONE
+          alert_task:
+            alert_id: ${resources.alerts.findings_to_review.id}
+            warehouse_id: ${var.warehouse_id}

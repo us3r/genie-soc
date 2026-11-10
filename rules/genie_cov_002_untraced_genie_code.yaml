@@ -1,0 +1,88 @@
+id: GENIE-COV-002
+name: Genie Code used but not traced
+version: 3
+status: experimental
+category: coverage
+severity: medium
+
+description: |
+  Genie Code activity appears in system.access.assistant_events, but no Genie Code span
+  reached the trace table in the same workspace and time window. assistant_events records
+  Genie Code requests (from the browser and from the agent working on its own) with no
+  content, so it is an independent count of what should have been traced.
+
+  Catches previews that were never turned on, tracing that was switched off, failed
+  delivery (Zerobus writes leave no audit trace), and sessions opened before tracing was
+  enabled, which stay untraced until the page is reloaded. In live testing the latter
+  showed up as 29 requests over 40 minutes with zero spans.
+
+  Windows are compared, not sessions: assistant_events has no conversation id. Windows
+  newer than the settle time are skipped until the system table has caught up. Genie One
+  does not write to assistant_events, so it is not covered here.
+
+data_sources:
+  - unified_trace_table
+  - system.access.assistant_events
+
+sql: |
+  WITH activity AS (
+    SELECT
+      workspace_id,
+      timestamp_seconds(floor(unix_seconds(event_time) / {bucket_seconds}) * {bucket_seconds}) AS window_start,
+      initiated_by,
+      user_agent,
+      event_time
+    FROM {assistant_events_table}
+    WHERE event_time >= current_timestamp() - INTERVAL {lookback}
+      AND event_time < current_timestamp() - INTERVAL {settle}
+  ),
+  windows AS (
+    SELECT
+      workspace_id,
+      window_start,
+      COUNT(*) AS requests,
+      count_if(user_agent LIKE 'databricks-background-genie%') AS agent_requests,
+      array_sort(collect_set(initiated_by)) AS users,
+      MIN(event_time) AS first_seen,
+      MAX(event_time) AS last_seen
+    FROM activity
+    GROUP BY 1, 2
+  ),
+  traced AS (
+    SELECT DISTINCT
+      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+      timestamp_seconds(floor(unix_seconds(time) / {bucket_seconds}) * {bucket_seconds}) AS window_start
+    FROM {trace_table}
+    WHERE service_name = 'genie-code-agent'
+      AND time >= current_timestamp() - INTERVAL {lookback}
+  )
+  SELECT
+    w.workspace_id,
+    w.window_start,
+    w.requests,
+    w.agent_requests,
+    size(w.users) AS user_count,
+    w.users,
+    CASE WHEN size(w.users) = 1 THEN w.users[0] END AS user_id,
+    w.first_seen,
+    w.last_seen
+  FROM windows w
+  LEFT ANTI JOIN traced t ON w.workspace_id = t.workspace_id AND w.window_start = t.window_start
+
+finding_key:
+  - workspace_id
+  - window_start
+
+parameters:
+  lookback: 1 DAY
+  settle: 30 MINUTES
+  bucket_seconds: 900
+
+false_positive_notes: |
+  - Workspaces where Genie Code tracing is deliberately off (record as a suppression)
+  - A turn that starts at the very end of a window can leave its spans in the next one
+  - Requests that Genie Code answers without exporting a span
+
+tags:
+  - coverage
+  - genie-code

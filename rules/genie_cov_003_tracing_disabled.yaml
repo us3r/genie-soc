@@ -44,6 +44,12 @@ sql: |
         AND action_name RLIKE '^(create|update|delete|set)MetastoreTracingConfig$')
     )
 
+finding_key:
+  - event_time
+  - workspace_id
+  - action_name
+  - setting
+
 parameters:
   lookback: 2 HOURS
   tracing_settings:

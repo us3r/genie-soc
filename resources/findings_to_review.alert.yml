@@ -1,0 +1,88 @@
+# SQL Alert (v2): genie-soc findings to review, coverage first.
+#
+# Evaluated by the alert task at the end of the genie-soc rules job, after the runner has
+# MERGEd its findings, so it never reads a half-written table. Its own schedule stays paused;
+# it exists only because an alert needs one.
+#
+# One row per open finding from the last ${var.alert_lookback_hours} hours, shown in the
+# notification via @QUERY_RESULT_TABLE. is_new = 1 when the finding was first detected by the
+# latest run. Rows sort is_new DESC and the alert triggers when the first row's is_new > 0, so
+# it notifies only when something new arrived; older rows give context. No aggregation on
+# purpose: an aggregation collapses @QUERY_RESULT_TABLE to one value.
+#
+# Notifications carry rule ids, workspace and user ids and times only, never prompt text.
+resources:
+  alerts:
+    findings_to_review:
+      display_name: genie-soc findings to review
+      warehouse_id: ${var.warehouse_id}
+      query_text: |
+        WITH latest_run AS (
+          SELECT min(started_at) AS started_at
+          FROM ${resources.schemas.genie_soc.catalog_name}.${resources.schemas.genie_soc.name}.rule_runs
+          WHERE run_id = (
+            SELECT max_by(run_id, started_at)
+            FROM ${resources.schemas.genie_soc.catalog_name}.${resources.schemas.genie_soc.name}.rule_runs
+          )
+        )
+        SELECT
+          CASE WHEN f.detected_at >= r.started_at - INTERVAL 1 MINUTE THEN 1 ELSE 0 END AS is_new,
+          f.severity,
+          f.rule_id,
+          f.rule_name,
+          f.category,
+          f.workspace_id,
+          coalesce(f.user_id, '') AS user_id,
+          date_format(f.first_seen, 'yyyy-MM-dd HH:mm') AS first_seen_utc,
+          date_format(f.last_seen, 'yyyy-MM-dd HH:mm') AS last_seen_utc,
+          f.times_seen,
+          array_join(f.conversation_ids, ', ') AS conversations,
+          f.finding_id
+        FROM ${resources.schemas.genie_soc.catalog_name}.${resources.schemas.genie_soc.name}.findings f
+        CROSS JOIN latest_run r
+        WHERE f.status = 'new'
+          AND f.detected_at >= current_timestamp() - INTERVAL ${var.alert_lookback_hours} HOURS
+        ORDER BY
+          is_new DESC,
+          CASE f.category WHEN 'coverage' THEN 0 ELSE 1 END,
+          CASE f.severity WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
+          f.last_seen DESC
+      custom_template_format: MARKDOWN
+      custom_summary: "genie-soc: findings to review"
+      custom_description: |
+        **@ALERT_NAME** is @ALERT_STATUS. Findings first detected by the latest run (`is_new` = 1),
+        coverage first, then every open finding from the last ${var.alert_lookback_hours} hours for
+        context.
+
+        Coverage findings mean Genie activity you cannot see: a workspace that stopped tracing,
+        Genie Code used without spans, or tracing switched off. Treat them before content findings,
+        because a quiet detection is only as good as its coverage.
+
+        @QUERY_RESULT_TABLE
+
+        **Investigate:** the full rule output is in `evidence` in
+        [findings](${var.workspace_url}/explore/data/${resources.schemas.genie_soc.catalog_name}/${resources.schemas.genie_soc.name}/findings):
+
+        `SELECT * FROM ${resources.schemas.genie_soc.catalog_name}.${resources.schemas.genie_soc.name}.findings WHERE finding_id = '<finding_id>'`
+
+        `conversations` joins to `conversation_id` in the upstream genie-trace-monitoring
+        `genie_sessions` and `genie_session_timeline`. Whether every rule ran is in `rule_runs`.
+        Alert: @ALERT_URL
+      evaluation:
+        comparison_operator: GREATER_THAN
+        source:
+          name: is_new
+          display: is_new
+        threshold:
+          value:
+            double_value: 0
+        empty_result_state: OK
+        notification:
+          notify_on_ok: false
+          retrigger_seconds: 1
+          subscriptions:
+            - user_email: ${var.alert_email}
+      schedule:
+        pause_status: PAUSED # evaluated by the job's alert task
+        quartz_cron_schedule: "0 20 * * * ?"
+        timezone_id: UTC

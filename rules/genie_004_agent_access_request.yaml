@@ -40,18 +40,33 @@ sql: |
         OR (attributes:['gen_ai.tool.name']::string = 'askUserQuestions'
           AND attributes:['gen_ai.tool.call.result']::string LIKE '%genie-code-rfa:%')
       )
+  ),
+  roots AS (
+    SELECT trace_id, attributes:['gen_ai.conversation.id']::string AS conversation_id
+    FROM {trace_table}
+    WHERE service_name IN ({genie_services})
+      AND name LIKE 'invoke_agent %'
+      AND time >= current_timestamp() - INTERVAL {lookback} - INTERVAL 1 DAY
   )
   SELECT
-    user_id,
-    workspace_id,
+    q.user_id,
+    q.workspace_id,
     COUNT(*) AS access_requests,
-    COUNT(DISTINCT trace_id) AS turns,
-    array_compact(collect_set(securable)) AS securables,
-    MIN(time) AS first_seen,
-    MAX(time) AS last_seen
-  FROM requests
+    COUNT(DISTINCT q.trace_id) AS turns,
+    array_compact(collect_set(q.securable)) AS securables,
+    array_sort(collect_set(coalesce(r.conversation_id, q.trace_id))) AS conversation_ids,
+    MIN(q.time) AS first_seen,
+    MAX(q.time) AS last_seen,
+    date_trunc('DAY', MAX(q.time)) AS day
+  FROM requests q
+  LEFT JOIN roots r ON r.trace_id = q.trace_id
   GROUP BY 1, 2
   HAVING access_requests >= {threshold}
+
+finding_key:
+  - user_id
+  - workspace_id
+  - day
 
 parameters:
   lookback: 1 HOUR

@@ -23,14 +23,22 @@ sql: |
       time,
       attributes:['enduser.id']::string AS user_id,
       attributes:['databricks.genie.channel']::string AS channel,
-      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id
+      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+      coalesce(attributes:['gen_ai.conversation.id']::string, trace_id) AS conversation_id
     FROM {trace_table}
     WHERE service_name = 'Genie One'
       AND name LIKE 'invoke_agent %'
       AND time >= current_timestamp() - INTERVAL {baseline_window}
   ),
   recent AS (
-    SELECT user_id, channel, workspace_id, COUNT(*) AS turns, MIN(time) AS first_seen
+    SELECT
+      user_id,
+      channel,
+      workspace_id,
+      COUNT(*) AS turns,
+      array_sort(collect_set(conversation_id)) AS conversation_ids,
+      MIN(time) AS first_seen,
+      MAX(time) AS last_seen
     FROM turns
     WHERE time >= current_timestamp() - INTERVAL {lookback}
     GROUP BY 1, 2, 3
@@ -44,6 +52,11 @@ sql: |
   FROM recent r
   LEFT ANTI JOIN baseline b ON r.user_id = b.user_id AND r.channel = b.channel
   WHERE r.channel IN ({programmatic_channels})
+
+finding_key:
+  - user_id
+  - workspace_id
+  - channel
 
 parameters:
   lookback: 1 DAY

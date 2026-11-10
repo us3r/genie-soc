@@ -18,6 +18,7 @@ severity: low
 frameworks:
   owasp_llm: [LLM01:2025 Prompt Injection]
 sql: SELECT * FROM {trace_table} WHERE time >= current_timestamp() - INTERVAL {lookback} AND n >= {threshold}
+finding_key: [workspace_id]
 parameters:
   lookback: 1 HOUR
   threshold: 3
@@ -83,6 +84,8 @@ def test_missing_placeholder_value_is_reported(tmp_path):
         (("frameworks:\n  owasp_llm: [LLM01:2025 Prompt Injection]\n", ""), "framework mapping"),
         (("version: 1\n", "version: 1\nowner: me\n"), "unknown keys owner"),
         (("name: Test rule\n", ""), "missing name"),
+        (("finding_key: [workspace_id]\n", ""), "finding_key"),
+        (("finding_key: [workspace_id]\n", "finding_key: [\"x; DROP\"]\n"), "finding_key"),
     ],
 )
 def test_invalid_rules_are_rejected(tmp_path, change, message):

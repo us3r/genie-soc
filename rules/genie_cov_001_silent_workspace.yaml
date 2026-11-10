@@ -28,6 +28,9 @@ sql: |
   FROM last_seen
   WHERE last_trace_time < current_timestamp() - INTERVAL {silence_threshold}
 
+finding_key:
+  - workspace_id
+
 parameters:
   baseline_window: 7 DAYS
   silence_threshold: 24 HOURS

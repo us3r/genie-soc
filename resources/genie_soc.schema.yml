@@ -1,0 +1,6 @@
+resources:
+  schemas:
+    genie_soc:
+      catalog_name: ${var.catalog}
+      name: ${var.schema}
+      comment: genie-soc findings, suppressions and rule runs. Identifiers and counts only, no prompt text.

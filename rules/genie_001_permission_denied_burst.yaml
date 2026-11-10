@@ -18,20 +18,43 @@ data_sources:
   - unified_trace_table
 
 sql: |
+  WITH denied AS (
+    SELECT
+      trace_id,
+      time,
+      attributes:['enduser.id']::string AS user_id,
+      CAST(attributes:['workspace_id'] AS STRING) AS workspace_id
+    FROM {trace_table}
+    WHERE service_name = 'genie-code-agent'
+      AND name LIKE 'execute_tool %'
+      AND attributes:['databricks.genie_code.tool.outcome']::string = 'PERMISSION_DENIED'
+      AND time >= current_timestamp() - INTERVAL {lookback}
+  ),
+  roots AS (
+    SELECT trace_id, attributes:['gen_ai.conversation.id']::string AS conversation_id
+    FROM {trace_table}
+    WHERE service_name IN ({genie_services})
+      AND name LIKE 'invoke_agent %'
+      AND time >= current_timestamp() - INTERVAL {lookback} - INTERVAL 1 DAY
+  )
   SELECT
-    attributes:['enduser.id']::string AS user_id,
-    CAST(attributes:['workspace_id'] AS STRING) AS workspace_id,
+    d.user_id,
+    d.workspace_id,
     COUNT(*) AS denied_calls,
-    COUNT(DISTINCT trace_id) AS turns,
-    MIN(time) AS first_seen,
-    MAX(time) AS last_seen
-  FROM {trace_table}
-  WHERE service_name = 'genie-code-agent'
-    AND name LIKE 'execute_tool %'
-    AND attributes:['databricks.genie_code.tool.outcome']::string = 'PERMISSION_DENIED'
-    AND time >= current_timestamp() - INTERVAL {lookback}
+    COUNT(DISTINCT d.trace_id) AS turns,
+    array_sort(collect_set(coalesce(r.conversation_id, d.trace_id))) AS conversation_ids,
+    MIN(d.time) AS first_seen,
+    MAX(d.time) AS last_seen,
+    date_trunc('DAY', MAX(d.time)) AS day
+  FROM denied d
+  LEFT JOIN roots r ON r.trace_id = d.trace_id
   GROUP BY 1, 2
   HAVING denied_calls >= {threshold}
+
+finding_key:
+  - user_id
+  - workspace_id
+  - day
 
 parameters:
   lookback: 1 HOUR

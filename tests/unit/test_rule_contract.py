@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = json.loads((ROOT / "tests" / "fixtures" / "genie_spans_m0v1.json").read_text())
 SPANS = FIXTURE["spans"]
 AUDIT = FIXTURE["audit_events"]
+ASSISTANT = FIXTURE["assistant_events"]
 RULES = load_rules(ROOT / "rules")
 
 ATTRIBUTE = re.compile(r"attributes:\['([^']+)'\]")
@@ -37,6 +38,7 @@ def uses(rule, source: str) -> bool:
 
 trace_rules = [r for r in RULES if uses(r, "unified_trace_table")]
 audit_rules = [r for r in RULES if uses(r, "system.access.audit")]
+assistant_rules = [r for r in RULES if uses(r, "system.access.assistant_events")]
 
 
 @pytest.mark.parametrize("rule", trace_rules, ids=lambda r: r.id)
@@ -75,3 +77,12 @@ def test_contract_checks_catch_the_documented_names():
     names = [span["name"] for span in SPANS]
     assert not any(like_to_regex("tool.execute:%").match(n) for n in names)
     assert "invoke_agent OneChat" not in names
+
+
+@pytest.mark.parametrize("rule", assistant_rules, ids=lambda r: r.id)
+def test_assistant_event_fields_match_real_events(rule):
+    for column in ("workspace_id", "event_time", "initiated_by", "user_agent"):
+        assert column in ASSISTANT[0], f"fixture lacks {column}"
+    for prefix in USER_AGENT.findall(rule.sql):
+        pattern = like_to_regex(prefix)
+        assert any(pattern.match(e["user_agent"]) for e in ASSISTANT), f"{rule.id}: user_agent LIKE '{prefix}' matches nothing"

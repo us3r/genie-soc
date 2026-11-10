@@ -193,19 +193,44 @@
       "service_name": "unityCatalog",
       "action_name": "getTable",
       "user_agent": "databricks-background-genie Chrome/148.0.0.0 group/assistant sid/0123456789abcdef0123456789abcdef",
-      "request_params": {"full_name_arg": "lab.sales.orders"}
+      "request_params": {
+        "full_name_arg": "lab.sales.orders"
+      }
     },
     {
       "service_name": "workspace",
       "action_name": "setSetting",
       "user_agent": "Mozilla/5.0",
-      "request_params": {"settingTypeName": "genie_tracing", "settingValueForAudit": "true", "settingKeyTypeName": "workspace"}
+      "request_params": {
+        "settingTypeName": "genie_tracing",
+        "settingValueForAudit": "true",
+        "settingKeyTypeName": "workspace"
+      }
     },
     {
       "service_name": "ai-gateway",
       "action_name": "updateMetastoreTracingConfig",
       "user_agent": "Mozilla/5.0",
-      "request_params": {"metastore_id": "00000000-0000-0000-0000-000000000005", "tracing_config": "{\"enabled\":true,\"catalog_name\":\"lab\",\"schema_name\":\"unity_gateway\"}"}
+      "request_params": {
+        "metastore_id": "00000000-0000-0000-0000-000000000005",
+        "tracing_config": "{\"enabled\":true,\"catalog_name\":\"lab\",\"schema_name\":\"unity_gateway\"}"
+      }
+    }
+  ],
+  "assistant_events": [
+    {
+      "workspace_id": "1000000000000001",
+      "event_id": "synthetic-1",
+      "event_time": "2026-11-10T19:41:00Z",
+      "user_agent": "Mozilla/5.0 (Macintosh) Chrome/157.0.0.0 Safari/537.36",
+      "initiated_by": "analyst@example.com"
+    },
+    {
+      "workspace_id": "1000000000000001",
+      "event_id": "synthetic-2",
+      "event_time": "2026-11-10T20:22:10Z",
+      "user_agent": "databricks-background-genie Chrome/148.0.0.0 group/assistant sid/0123456789abcdef0123456789abcdef",
+      "initiated_by": "analyst@example.com"
     }
   ]
 }
