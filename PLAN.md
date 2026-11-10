@@ -55,6 +55,6 @@ eval/                   red-team set + MLflow evaluation of imported detectors (
 
 ## Ground rules
 
-- Personal `dev` workspace and synthetic data only. No employer data, names or configuration.
+- Isolated lab workspace and synthetic data only. No employer data, names or configuration in this repository.
 - Every rule ships with tests and a framework mapping (MITRE ATLAS, OWASP Top 10 for LLM Applications).
 - Upstream credit in README and NOTICE.
